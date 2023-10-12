@@ -25,8 +25,11 @@ public class FilterTaskAuth extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
-                //pagar a autenticação
-                String authorization = request.getHeader("Authorization");
+
+                String servletPath = request.getServletPath();
+                if(servletPath.startsWith("/tasks/")) {  //startWith indica que o prefixo incia com um nome especifico desconsiderando o que vem a seguir
+
+                    String authorization = request.getHeader("Authorization");
             
                 String auth_encoded = authorization.substring("Basic".length()).trim();
                 byte[] authDecoded = Base64.getDecoder().decode(auth_encoded);
@@ -44,11 +47,17 @@ public class FilterTaskAuth extends OncePerRequestFilter {
                     //valida senha
                     Result passwordVerify =  BCrypt.verifyer().verify(password.toCharArray(), user.getPassword());
                     if(passwordVerify.verified){
+                        request.setAttribute("idUser", user.getId());
                         filterChain.doFilter(request, response);
                     }else{
                         response.sendError(401);
                     }
                 }
+                }else{
+                    filterChain.doFilter(request, response);
+                }
+                //pagar a autenticação
+                
                 
                 
         
